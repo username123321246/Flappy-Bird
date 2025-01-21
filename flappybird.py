@@ -1,5 +1,5 @@
 import pygame
-import random
+from random import randint
 from pygame.locals import *
 
 pygame.init()
@@ -14,7 +14,7 @@ Fps = 60
 
 screen = pygame.display.set_mode((screen_width, screen_height))
 pygame.display.set_caption("Flappy Bird")
-font  =pygame.Sysfont("Botsmatic Demo", 60)
+font = pygame.font.SysFont("Botsmatic Demo", 60)
 
 white = (255,255,255)
 
@@ -83,7 +83,7 @@ class Bird(pygame.sprite.Sprite):
         self.index = 0
         self.counter = 0
         for num in range (1, 3):
-            img = pygame.image.load(f"bird{num}png")
+            img = pygame.image.load(f"bird{num}.png")
             self.images.append(img)
         self.image = self.images[self.index]
         self.rect = self.image.get_rect()
@@ -127,6 +127,13 @@ bird_group.add(flappy)
 
 button = Button(432, 468, restartimg)
 
+def reset_game():
+    pipe_group.empty()
+    flappy.rect.x = 100
+    flappy.rect.y = 468
+    score = 0
+    return score
+
 run = True
 while run:
 
@@ -158,5 +165,44 @@ while run:
     if flappy.rect.bottom >= 768:
         game_over = True
         Flying = False
+
+
+    if flying == True and game_over == False:
+# generating new pipes
+        time_now = pygame.time.get_ticks()
+        if time_now - last_pipe > pipe_frequency:
+            pipe_height = randint(-100, 100)
+            btm_pipe = Pipe(screen_width, int(screen_height / 2) + pipe_height, -1)
+            top_pipe = Pipe(screen_width, int(screen_height / 2) + pipe_height, +1)
+            pipe_group.add(btm_pipe)
+            pipe_group.add(top_pipe)
+
+    pipe_group.update()
+
+
+    ground_scroll -= scroll_speed
+    if abs(ground_scroll) >= 35:
+        ground_scroll = 0
+
+# check for game over and reset
+
+    if game_over == True:
+        if button.draw():
+            game_over = False
+            score = reset_game()
+        
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            run = False
+        
+        if event.type == pygame.MOUSEBUTTONDOWN and flying == False and game_over == False:
+            flying = True
+
+    pygame.display.update()
+
+pygame.quit()
+
+
+
 
 
